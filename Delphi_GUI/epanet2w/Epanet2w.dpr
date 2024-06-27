@@ -56,7 +56,8 @@ uses
   Dchart in 'Dchart.pas' {ChartOptionsDlg},
   Vcl.Themes,
   Vcl.Styles,
-  Dsource in 'Dsource.pas' {SourceForm};
+  Dsource in 'Dsource.pas' {SourceForm},
+  FParamTuning in 'FParamTuning.pas' {ParamTuningForm};
 
 {$R *.RES}
 
@@ -67,5 +68,6 @@ begin
   Application.CreateForm(TFindForm, FindForm);
   Application.CreateForm(TQueryForm, QueryForm);
   Application.CreateForm(TOVMapForm, OVMapForm);
+  Application.CreateForm(TParamTuningForm, ParamTuningForm);
   Application.Run;
 end.

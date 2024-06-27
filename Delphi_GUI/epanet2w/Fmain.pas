@@ -227,6 +227,8 @@ type
     ToolButton11: TToolButton;
     ToolButton12: TToolButton;
     PageSetupDialog: TPageSetupDialogEx;
+    N17: TMenuItem;
+    MnuParamTuning: TMenuItem;
 
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -315,6 +317,7 @@ type
       var S: String; var WW: Boolean);
     procedure TBOptionsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure MnuParamTuningClick(Sender: TObject);
   private
     { Private declarations }
     procedure ClearAll;
@@ -818,6 +821,11 @@ begin
   end;
 end;
 
+
+procedure TMainForm.MnuParamTuningClick(Sender: TObject);
+begin
+   MapForm.TuningSimParameters
+end;
 
 procedure TMainForm.MnuPrintPreviewClick(Sender: TObject);
 //----------------------------------------------------------------------

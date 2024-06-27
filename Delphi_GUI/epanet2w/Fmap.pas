@@ -235,6 +235,7 @@ type
     procedure HiliteOn;
     procedure InvalidateMap(var aRect: TRect);
     procedure ModifyMapDimensions;
+    procedure TuningSimParameters; //Perform parameters tunning for simulation
     procedure ModifyLinkLegend;
     procedure ModifyNodeLegend;
     procedure MoveNode(const ObjType, ObjIndex: Integer; const X, Y: Extended);
@@ -258,7 +259,7 @@ implementation
 
 {$R *.DFM}
 
-uses Dcopy, Dlabel, Dmap, Dmapdim, Fmain, Fbrowser, Fovmap, Fproped,
+uses Dcopy, Dlabel, Dmap, Dmapdim, FParamTuning, Fmain, Fbrowser, Fovmap, Fproped,
      Uinput, Uoutput;
 
 var
@@ -659,6 +660,33 @@ begin
   finally
     Free;
   end;
+end;
+
+
+procedure TMapForm.TuningSimParameters;
+begin
+    MainForm.SelectorButtonClick;
+    with TParamTuningForm.Create(self) do
+    try
+
+    //Load current dimensions into form
+//      LoadDimensions;
+
+    //Retrieve new extents from form
+      if ShowModal = mrOK then
+      begin
+//        UnloadDimensions;
+//        HasChanged := True;
+//
+//      //Re-scale & redraw map
+//        Map.Rescale(MapDimensions);   //Re-dimension
+//        Map.RedrawBackdrop;           //Redraw backdrop
+//        RedrawMap;                    //Redraw map
+//        OVMapForm.Rescale;            //Update overview map
+      end;
+    finally
+      Free;
+    end;
 end;
 
 
