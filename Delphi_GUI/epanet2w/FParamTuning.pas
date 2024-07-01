@@ -552,7 +552,7 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
         EditorIndex := objIndex;
         case objType of
           JUNCS:  begin
-                validSucceed := Uinput.ValidJunc(5, objValTxt);    // -1: avoid data re-fetch!!
+                validSucceed := Uinput.ValidJunc(5, objValTxt);
           end;
 
           RESERVS:  begin
@@ -576,10 +576,9 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
           end;
         end;
 
+        //Re-run the simulation
         if validSucceed then
            runSimulationSilent;
-
-        //Re-run the simulation
   end;
 
 
@@ -785,48 +784,368 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
 
 
   procedure TParamTuningForm.scrlbVal2Change(Sender: TObject);
-  var inputVal: Integer;
-  var step: Real;
+  var inputVal, objType, objIndex: Integer;
+  objIdTxt, objValTxt: String;
+  step: Real;
+  validSucceed: Boolean;
   begin
-      inputVal :=  scrlbVal2.Position;
-      step := StrToFloat(edtStep2.Text);
-      edtVal2.Text := FloatToStr(inputVal*step)
+        objIndex := cmbObject.ItemIndex;
+        if (objIndex < 0) then
+          Exit;
+
+        inputVal :=  scrlbVal2.Position;
+        step := StrToFloat(edtStep2.Text);
+        edtVal2.Text := FloatToStr(inputVal*step);
+        objValTxt := edtVal2.Text;
+
+        //Save the updated property
+        validSucceed := False;
+        objType := cmbParmType.ItemIndex;
+        if objType = 6 then
+          begin    //All types selected, do the adjustment for index and type
+               objIdTxt :=  cmbObject.Items[objIndex];
+               if (not ObjNameIdMap.TryGetValue(objIdTxt, objIndex)) then
+                    Exit;
+
+               if (objIdTxt.StartsWith('junc', true)) then
+                  objType :=  JUNCS;
+               if (objIdTxt.StartsWith('resvr', true)) then
+                  objType :=  RESERVS;
+               if (objIdTxt.StartsWith('tank', true)) then
+                  objType :=  TANKS;
+               if (objIdTxt.StartsWith('pipe', true)) then
+                  objType :=  PIPES;
+               if (objIdTxt.StartsWith('pump', true)) then
+                  objType :=  PUMPS;
+               if (objIdTxt.StartsWith('valve', true)) then
+                  objType :=  VALVES;
+          end;
+
+        EditorObject := objType;
+        EditorIndex := objIndex;
+        case objType of
+          JUNCS:  begin
+                validSucceed := Uinput.ValidJunc(6, objValTxt);
+          end;
+
+          RESERVS:  begin
+                validSucceed := Uinput.ValidReserv(7, objValTxt);
+          end;
+
+          TANKS:  begin
+                validSucceed := Uinput.ValidTank(6, objValTxt);
+          end;
+
+          PIPES: begin
+                validSucceed := Uinput.ValidPipe(6, objValTxt);
+          end;
+
+          PUMPS: begin
+                validSucceed := Uinput.ValidPump(7, objValTxt);
+          end;
+
+          VALVES: begin
+                validSucceed := Uinput.ValidValve(7, objValTxt);
+          end;
+        end;
+
+        //Re-run the simulation
+        if validSucceed then
+           runSimulationSilent;
   end;
 
 procedure TParamTuningForm.scrlbVal3Change(Sender: TObject);
-  var inputVal: Integer;
-  var step: Real;
+  var inputVal, objType, objIndex: Integer;
+  objIdTxt, objValTxt: String;
+  step: Real;
+  validSucceed: Boolean;
   begin
-      inputVal :=  scrlbVal3.Position;
-      step := StrToFloat(edtStep3.Text);
-      edtVal3.Text := FloatToStr(inputVal*step)
+        objIndex := cmbObject.ItemIndex;
+        if (objIndex < 0) then
+          Exit;
+
+        inputVal :=  scrlbVal3.Position;
+        step := StrToFloat(edtStep3.Text);
+        edtVal3.Text := FloatToStr(inputVal*step);
+        objValTxt := edtVal3.Text;
+
+        //Save the updated property
+        validSucceed := False;
+        objType := cmbParmType.ItemIndex;
+        if objType = 6 then
+          begin    //All types selected, do the adjustment for index and type
+               objIdTxt :=  cmbObject.Items[objIndex];
+               if (not ObjNameIdMap.TryGetValue(objIdTxt, objIndex)) then
+                    Exit;
+
+               if (objIdTxt.StartsWith('junc', true)) then
+                  objType :=  JUNCS;
+               if (objIdTxt.StartsWith('resvr', true)) then
+                  objType :=  RESERVS;
+               if (objIdTxt.StartsWith('tank', true)) then
+                  objType :=  TANKS;
+               if (objIdTxt.StartsWith('pipe', true)) then
+                  objType :=  PIPES;
+               if (objIdTxt.StartsWith('pump', true)) then
+                  objType :=  PUMPS;
+               if (objIdTxt.StartsWith('valve', true)) then
+                  objType :=  VALVES;
+          end;
+
+        EditorObject := objType;
+        EditorIndex := objIndex;
+        case objType of
+          JUNCS:  begin
+                validSucceed := Uinput.ValidJunc(9, objValTxt);
+          end;
+
+          RESERVS:  begin
+                validSucceed := Uinput.ValidReserv(8, objValTxt);
+          end;
+
+          TANKS:  begin
+                validSucceed := Uinput.ValidTank(7, objValTxt);
+          end;
+
+          PIPES: begin
+                validSucceed := Uinput.ValidPipe(7, objValTxt);
+          end;
+
+          PUMPS: begin
+                validSucceed := Uinput.ValidPump(11, objValTxt);
+          end;
+
+          VALVES: begin
+                validSucceed := Uinput.ValidValve(8, objValTxt);
+          end;
+        end;
+
+        //Re-run the simulation
+        if validSucceed then
+           runSimulationSilent;
   end;
 
 procedure TParamTuningForm.scrlbVal4Change(Sender: TObject);
-  var inputVal: Integer;
-  var step: Real;
+  var inputVal, objType, objIndex: Integer;
+  objIdTxt, objValTxt: String;
+  step: Real;
+  validSucceed: Boolean;
   begin
-      inputVal :=  scrlbVal4.Position;
-      step := StrToFloat(edtStep4.Text);
-      edtVal4.Text := FloatToStr(inputVal*step)
+        objIndex := cmbObject.ItemIndex;
+        if (objIndex < 0) then
+          Exit;
+
+        inputVal :=  scrlbVal4.Position;
+        step := StrToFloat(edtStep4.Text);
+        edtVal4.Text := FloatToStr(inputVal*step);
+        objValTxt := edtVal4.Text;
+
+        //Save the updated property
+        validSucceed := False;
+        objType := cmbParmType.ItemIndex;
+        if objType = 6 then
+          begin    //All types selected, do the adjustment for index and type
+               objIdTxt :=  cmbObject.Items[objIndex];
+               if (not ObjNameIdMap.TryGetValue(objIdTxt, objIndex)) then
+                    Exit;
+
+               if (objIdTxt.StartsWith('junc', true)) then
+                  objType :=  JUNCS;
+               if (objIdTxt.StartsWith('resvr', true)) then
+                  objType :=  RESERVS;
+               if (objIdTxt.StartsWith('tank', true)) then
+                  objType :=  TANKS;
+               if (objIdTxt.StartsWith('pipe', true)) then
+                  objType :=  PIPES;
+               if (objIdTxt.StartsWith('pump', true)) then
+                  objType :=  PUMPS;
+               if (objIdTxt.StartsWith('valve', true)) then
+                  objType :=  VALVES;
+          end;
+
+        EditorObject := objType;
+        EditorIndex := objIndex;
+        case objType of
+          JUNCS:  begin
+                validSucceed := Uinput.ValidJunc(10, objValTxt);
+          end;
+
+          RESERVS:  begin
+//                validSucceed := Uinput.ValidReserv(8, objValTxt);
+                  Exit;
+          end;
+
+          TANKS:  begin
+                validSucceed := Uinput.ValidTank(8, objValTxt);
+          end;
+
+          PIPES: begin
+                validSucceed := Uinput.ValidPipe(8, objValTxt);
+          end;
+
+          PUMPS: begin
+//                validSucceed := Uinput.ValidPump(11, objValTxt);
+                  Exit;
+          end;
+
+          VALVES: begin
+//                validSucceed := Uinput.ValidValve(8, objValTxt);
+                  Exit;
+          end;
+        end;
+
+        //Re-run the simulation
+        if validSucceed then
+           runSimulationSilent;
   end;
 
 procedure TParamTuningForm.scrlbVal5Change(Sender: TObject);
-  var inputVal: Integer;
-  var step: Real;
+  var inputVal, objType, objIndex: Integer;
+  objIdTxt, objValTxt: String;
+  step: Real;
+  validSucceed: Boolean;
   begin
-      inputVal :=  scrlbVal5.Position;
-      step := StrToFloat(edtStep5.Text);
-      edtVal5.Text := FloatToStr(inputVal*step)
+        objIndex := cmbObject.ItemIndex;
+        if (objIndex < 0) then
+          Exit;
+
+        inputVal :=  scrlbVal5.Position;
+        step := StrToFloat(edtStep5.Text);
+        edtVal5.Text := FloatToStr(inputVal*step);
+        objValTxt := edtVal5.Text;
+
+        //Save the updated property
+        validSucceed := False;
+        objType := cmbParmType.ItemIndex;
+        if objType = 6 then
+          begin    //All types selected, do the adjustment for index and type
+               objIdTxt :=  cmbObject.Items[objIndex];
+               if (not ObjNameIdMap.TryGetValue(objIdTxt, objIndex)) then
+                    Exit;
+
+               if (objIdTxt.StartsWith('junc', true)) then
+                  objType :=  JUNCS;
+               if (objIdTxt.StartsWith('resvr', true)) then
+                  objType :=  RESERVS;
+               if (objIdTxt.StartsWith('tank', true)) then
+                  objType :=  TANKS;
+               if (objIdTxt.StartsWith('pipe', true)) then
+                  objType :=  PIPES;
+               if (objIdTxt.StartsWith('pump', true)) then
+                  objType :=  PUMPS;
+               if (objIdTxt.StartsWith('valve', true)) then
+                  objType :=  VALVES;
+          end;
+
+        EditorObject := objType;
+        EditorIndex := objIndex;
+        case objType of
+          JUNCS:  begin
+                validSucceed := Uinput.ValidJunc(11, objValTxt);
+          end;
+
+          RESERVS:  begin
+//                validSucceed := Uinput.ValidReserv(8, objValTxt);
+                  Exit;
+          end;
+
+          TANKS:  begin
+                validSucceed := Uinput.ValidTank(9, objValTxt);
+          end;
+
+          PIPES: begin
+                validSucceed := Uinput.ValidPipe(10, objValTxt);
+          end;
+
+          PUMPS: begin
+//                validSucceed := Uinput.ValidPump(11, objValTxt);
+                  Exit;
+          end;
+
+          VALVES: begin
+//                validSucceed := Uinput.ValidValve(8, objValTxt);
+                  Exit;
+          end;
+        end;
+
+        //Re-run the simulation
+        if validSucceed then
+           runSimulationSilent;
   end;
 
 procedure TParamTuningForm.scrlbVal6Change(Sender: TObject);
-  var inputVal: Integer;
-  var step: Real;
+  var inputVal, objType, objIndex: Integer;
+  objIdTxt, objValTxt: String;
+  step: Real;
+  validSucceed: Boolean;
   begin
-      inputVal :=  scrlbVal6.Position;
-      step := StrToFloat(edtStep6.Text);
-      edtVal6.Text := FloatToStr(inputVal*step)
+        objIndex := cmbObject.ItemIndex;
+        if (objIndex < 0) then
+          Exit;
+
+        inputVal :=  scrlbVal6.Position;
+        step := StrToFloat(edtStep6.Text);
+        edtVal6.Text := FloatToStr(inputVal*step);
+        objValTxt := edtVal6.Text;
+
+        //Save the updated property
+        validSucceed := False;
+        objType := cmbParmType.ItemIndex;
+        if objType = 6 then
+          begin    //All types selected, do the adjustment for index and type
+               objIdTxt :=  cmbObject.Items[objIndex];
+               if (not ObjNameIdMap.TryGetValue(objIdTxt, objIndex)) then
+                    Exit;
+
+               if (objIdTxt.StartsWith('junc', true)) then
+                  objType :=  JUNCS;
+               if (objIdTxt.StartsWith('resvr', true)) then
+                  objType :=  RESERVS;
+               if (objIdTxt.StartsWith('tank', true)) then
+                  objType :=  TANKS;
+               if (objIdTxt.StartsWith('pipe', true)) then
+                  objType :=  PIPES;
+               if (objIdTxt.StartsWith('pump', true)) then
+                  objType :=  PUMPS;
+               if (objIdTxt.StartsWith('valve', true)) then
+                  objType :=  VALVES;
+          end;
+
+        EditorObject := objType;
+        EditorIndex := objIndex;
+        case objType of
+          JUNCS:  begin
+//                validSucceed := Uinput.ValidJunc(9, objValTxt);
+                  Exit;
+          end;
+
+          RESERVS:  begin
+//                validSucceed := Uinput.ValidReserv(8, objValTxt);
+                  Exit;
+          end;
+
+          TANKS:  begin
+                validSucceed := Uinput.ValidTank(10, objValTxt);
+          end;
+
+          PIPES: begin
+                validSucceed := Uinput.ValidPipe(11, objValTxt);
+          end;
+
+          PUMPS: begin
+//                validSucceed := Uinput.ValidPump(11, objValTxt);
+                  Exit;
+          end;
+
+          VALVES: begin
+//                validSucceed := Uinput.ValidValve(8, objValTxt);
+                  Exit;
+          end;
+        end;
+
+        //Re-run the simulation
+        if validSucceed then
+           runSimulationSilent;
   end;
 
 end.
