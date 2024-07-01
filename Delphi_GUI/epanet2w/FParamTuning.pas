@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Uglobals,
-  System.Generics.Collections;
+  System.Generics.Collections, Uinput, Uoutput, Uexport, Uutils, Fbrowser, Fmain, Fmap,
+  Epanet2;
 
 const
   objTag: array[JUNCS..VALVES]  of PChar = ('Junc ', 'Resvr ', 'Tank ', 'Pipe ', 'Pump ', 'Valve ');
@@ -67,6 +68,10 @@ type
     procedure edtVal6Change(Sender: TObject);
     procedure cmbParmTypeChange(Sender: TObject);
     procedure cmbObjectChange(Sender: TObject);
+    procedure runSimulationSilent();
+    procedure doExecSimulation();
+    function  RunHydraulics: Integer;
+    procedure RunQuality();
   private
     { Private declarations }
     ObjNameIdMap: TDictionary<string, Integer>;
@@ -190,7 +195,7 @@ procedure TParamTuningForm.cmbObjectChange(Sender: TObject);
 var objType, objIndex: Integer; objIdTxt: String;
 begin
     //Load the properties for the select object
-    objIndex := cmbObject.ItemIndex;
+    objIndex := cmbObject.ItemIndex;    //The original index in the the dropdown list
     if (objIndex < 0) then
       Exit;
 
@@ -506,21 +511,280 @@ end;
 
 
 procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
-  var inputVal: Integer;
-  var step: Real;
+  var inputVal, objType, objIndex: Integer;
+  objIdTxt, objValTxt: String;
+  step: Real;
+  validSucceed: Boolean;
   begin
+        objIndex := cmbObject.ItemIndex;
+        if (objIndex < 0) then
+          Exit;
+
         inputVal :=  scrlbVal1.Position;
         step := StrToFloat(edtStep1.Text);
         edtVal1.Text := FloatToStr(inputVal*step);
+        objValTxt := edtVal1.Text;
 
         //Save the updated property
+        validSucceed := False;
+        objType := cmbParmType.ItemIndex;
+        if objType = 6 then
+          begin    //All types selected, do the adjustment for index and type
+               objIdTxt :=  cmbObject.Items[objIndex];
+               if (not ObjNameIdMap.TryGetValue(objIdTxt, objIndex)) then
+                    Exit;
 
+               if (objIdTxt.StartsWith('junc', true)) then
+                  objType :=  JUNCS;
+               if (objIdTxt.StartsWith('resvr', true)) then
+                  objType :=  RESERVS;
+               if (objIdTxt.StartsWith('tank', true)) then
+                  objType :=  TANKS;
+               if (objIdTxt.StartsWith('pipe', true)) then
+                  objType :=  PIPES;
+               if (objIdTxt.StartsWith('pump', true)) then
+                  objType :=  PUMPS;
+               if (objIdTxt.StartsWith('valve', true)) then
+                  objType :=  VALVES;
+          end;
+
+        EditorObject := objType;
+        EditorIndex := objIndex;
+        case objType of
+          JUNCS:  begin
+                validSucceed := Uinput.ValidJunc(5, objValTxt);    // -1: avoid data re-fetch!!
+          end;
+
+          RESERVS:  begin
+                validSucceed := Uinput.ValidReserv(5, objValTxt);
+          end;
+
+          TANKS:  begin
+                validSucceed := Uinput.ValidTank(5, objValTxt);
+          end;
+
+          PIPES: begin
+                validSucceed := Uinput.ValidPipe(5, objValTxt);
+          end;
+
+          PUMPS: begin
+                validSucceed := Uinput.ValidPump(6, objValTxt);
+          end;
+
+          VALVES: begin
+                validSucceed := Uinput.ValidValve(5, objValTxt);
+          end;
+        end;
+
+        if validSucceed then
+           runSimulationSilent;
 
         //Re-run the simulation
   end;
 
 
-procedure TParamTuningForm.scrlbVal2Change(Sender: TObject);
+  //Run the simulation without popup dialog
+  procedure TParamTuningForm.runSimulationSilent;
+  var i: Integer;
+  OldDir: String;
+  begin
+        // Clear all previous results
+    Uoutput.ClearOutput;
+    BrowserForm.InitMapPage;
+    RunStatus := rsNone;
+    MainForm.ShowRunStatus;
+
+  // Create temporary files
+    MainForm.DeleteTempFiles;
+    MainForm.CreateTempFiles;
+
+  // Display simulation dialog form ****
+//    with TSimulationForm.Create(self) do
+//    try
+//      ShowModal;
+//    finally
+//      Free;
+//    end;
+    //Run the actual resolver for the network
+    // Change to temporary directory
+    GetDir(0,OldDir);
+    ChDir(TempDir);
+
+    // Update the form's display
+//    Update;
+
+    // Execute the simulation
+    doExecSimulation;
+
+    // Restore original directory
+    ChDir(OldDir);
+
+  // Hide Cancel button & enable OK button
+//    CancelBtn.Visible := False;
+//    OKBtn.Visible := True;
+//    OKbtn.SetFocus;
+
+  // Delete temporary files if run ended prematurely
+    if (RunStatus = rsShutdown)               //Fatal error in solver DLL
+    or (RunStatus = rsCancelled) then         //User cancelled run
+    begin
+      MainForm.DeleteTempFiles;
+    end;
+
+  // Set RunFlag if run produced results
+    if RunStatus in [rsSuccess, rsWarning] then
+      RunFlag := True;
+//    if RunStatus = rsError then MnuReportStatusClick(Self);
+
+  // Retrieve results if run was successful
+    if RunFlag then
+    begin
+      Screen.Cursor := crHourGlass;
+      MainForm.ShowRunStatus;
+      Uoutput.GetBasicOutput;
+      BrowserForm.EnableTimeControls;
+      Screen.Cursor := crDefault;
+    end;
+
+  // Refresh map display and all existing output display forms
+    BrowserForm.RefreshMap;
+    MapForm.DrawNodeLegend;
+    MapForm.DrawLinkLegend;
+    MainForm.RefreshForms;
+
+  // Display any warning messages in Status Report
+//    if RunStatus = rsWarning then
+//    begin
+////      MnuReportStatusClick(Self);
+//      if ActiveMDIChild is TStatusForm then
+//        TStatusForm(ActiveMDIChild).SelectText(TXT_WARNING);
+//    end;
+
+  end;
+
+  procedure TParamTuningForm.doExecSimulation;
+  var
+  err: Integer;
+  InpFile, RptFile, OutFile: AnsiString;
+  begin
+        // Save current input data to temporary file
+        Uexport.ExportDataBase(TempInputFile,False);
+
+      // Open solver and read in network data
+        try
+          InpFile := AnsiString(TempInputFile);
+          RptFile := AnsiString(TempReportFile);
+          OutFile := AnsiString(TempOutputFile);
+          err := ENopen(PAnsiChar(InpFile), PAnsiChar(RptFile), PAnsiChar(OutFile));
+
+      // Solve for hydraulics & water quality, then close solver
+          if (err = 0) and (RunStatus <> rsCancelled) then  err := RunHydraulics;
+          if (err = 0) and (RunStatus <> rsCancelled) then  RunQuality;
+          ENclose;
+
+      // Close solver if an exception occurs
+        except
+          on E: Exception do
+          begin
+//            Uutils.MsgDlg(E.Message, mtError, [mbOK]);
+            ENclose;
+            Runstatus := rsShutdown;
+          end;
+        end;
+
+      // Display run status
+//        DisplayRunStatus;
+      if not (RunStatus in [rsCancelled, rsShutdown]) then
+      begin
+        if GetFileSize(TempReportFile) <= 0 then RunStatus := rsFailed
+        else RunStatus := Uoutput.CheckRunStatus(TempOutputFile);
+      end;
+  end;
+
+
+  function TParamTuningForm.RunHydraulics: Integer;
+  var
+  err: Integer;
+  t, tstep: Longint;
+  h: Single;
+  slabel: String;
+  begin
+       // Open hydraulics solver
+        err := 0;
+//        StatusLabel.Caption := TXT_REORDERING;
+//        StatusLabel.Refresh;
+        try
+          if ENopenH() = 0 then
+          begin
+
+          // Initialize hydraulics solver
+            ENinitH(1);
+            h := 0;
+//            slabel := TXT_SOLVING_HYD;
+
+          // Solve hydraulics in each period
+            repeat
+//              StatusLabel.Caption := Format('%s %.2f',[slabel,h]);
+              Application.ProcessMessages;
+              err := ENrunH(t);
+              tstep := 0;
+              if err <= 100 then err := ENnextH(tstep);
+              h := h + tstep/3600;
+            until (tstep = 0) or (err > 100) or (RunStatus = rsCancelled);
+          end;
+
+        // Close hydraulics solver & ignore warning conditions
+          ENcloseH();
+          if err <= 100 then err := 0;
+          Result := err;
+
+      // Exception handler
+        except
+          ENcloseH();
+          raise;
+        end;
+  end;
+
+
+  procedure TParamTuningForm.RunQuality;
+  var
+  err: Integer;
+  t, tstep: Longint;
+  h: Single;
+  slabel: String;
+  begin
+         // Open WQ solver
+          h := 0;
+//          if UpperCase(Trim(Network.Options.Data[QUAL_PARAM_INDEX])) = 'NONE'
+//          then slabel := TXT_SAVING_HYD
+//          else slabel := TXT_SOLVING_WQ;
+          try
+            if ENopenQ() = 0 then
+            begin
+
+          // Initialize WQ solver & solve WQ in each period
+              ENinitQ(1);
+              repeat
+//                StatusLabel.Caption := Format('%s %.2f',[slabel,h]);
+                err := ENrunQ(t);
+                tstep := 0;
+                if err <= 100 then err := ENnextQ(tstep);
+                h := h + tstep/3600;
+                Application.ProcessMessages;
+              until (tstep = 0) or (err > 100) or (RunStatus = rsCancelled);
+            end;
+
+          // Close WQ solver & ignore warning conditions
+            ENcloseQ();
+
+          except
+            ENcloseQ();
+            raise;
+          end;
+  end;
+
+
+  procedure TParamTuningForm.scrlbVal2Change(Sender: TObject);
   var inputVal: Integer;
   var step: Real;
   begin

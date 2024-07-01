@@ -318,24 +318,21 @@ type
     procedure TBOptionsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure MnuParamTuningClick(Sender: TObject);
+
   private
     { Private declarations }
     procedure ClearAll;
     procedure CloseForms;
-    procedure CreateTempFiles;
-    procedure DeleteTempFiles;
     procedure FindBackdropFile;
     procedure InitPageLayout;
     procedure MRUDisplay(Sender: TObject);
     procedure MRUUpdate(Sender: TObject; const AddFileName: String);
     procedure OpenFile(Sender: TObject; const Fname: String);
     procedure Print(Dest: TDestination);
-    procedure RefreshForms;
     procedure RunSimulation;
     procedure SaveFile(Fname: String);
     function  SaveFileDlg(Sender: TObject): Integer;
     procedure ShowAutoLengthStatus;
-    procedure ShowRunStatus;
  public
     { Public declarations }
     MRUList:  TStringList;
@@ -349,6 +346,11 @@ type
     procedure SetChangeFlags;
     procedure ShowProgressBar(const Msg: String);
     procedure UpdateProgressBar(var Count: Integer; const StepSize: Integer);
+
+    procedure CreateTempFiles;
+    procedure DeleteTempFiles;
+    procedure RefreshForms;
+    procedure ShowRunStatus;
 end;
 
 var
