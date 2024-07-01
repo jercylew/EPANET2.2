@@ -4,7 +4,8 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Uglobals;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Uglobals,
+  System.Generics.Collections;
 
 const
   objTag: array[JUNCS..VALVES]  of PChar = ('Junc ', 'Resvr ', 'Tank ', 'Pipe ', 'Pump ', 'Valve ');
@@ -68,6 +69,7 @@ type
     procedure cmbObjectChange(Sender: TObject);
   private
     { Private declarations }
+    ObjNameIdMap: TDictionary<string, Integer>;
   public
     { Public declarations }
   end;
@@ -82,6 +84,7 @@ implementation
 procedure TParamTuningForm.FormCreate(Sender: TObject);
 var i: Integer;
 begin
+  ObjNameIdMap := TDictionary<string, Integer>.Create;
   if (cmbParmType.ItemIndex = 6) then
     begin
       for i := JUNCS to VALVES do
@@ -97,8 +100,8 @@ begin
         UpdateTuningParamLabelNames(cmbParmType.ItemIndex);
     end;
 
-
-  cmbObject.ItemIndex := 0
+  cmbObject.ItemIndex := 0;
+  cmbObjectChange(cmbObject);
 end;
 
 
@@ -109,14 +112,15 @@ begin
     for i := 0 to n-1 do
       begin
             objIdTxt := objTag[ObjType] + GetID(ObjType,i);
-            cmbObject.Items.Add(objIdTxt)
+            cmbObject.Items.Add(objIdTxt);
+            ObjNameIdMap.AddOrSetValue(objIdTxt, i);
       end;
 end;
 
 
 procedure TParamTuningForm.UpdateTuningParamLabelNames(ObjType: Integer);
 begin
-       //Junction: Elevation, Base Demand, Emitter Coeff., Initial Quality,
+  //Junction: Elevation, Base Demand, Emitter Coeff., Initial Quality,
   //          Source Quality
   //Reservoir:  Total Head,  Initial Quality, Source Quality
   //Tank: Elevation, Initial Level, Minimum Level, Maximum Level, Diameter,
@@ -147,9 +151,9 @@ begin
           lblParam1.Caption := 'Elevation';
           lblParam2.Caption := 'Initial Level';
           lblParam3.Caption := 'Minimum Level';
-          lblParam4.Caption := 'Diameter';
-          lblParam5.Caption := 'Minimum Volume';
-          lblParam6.Caption := 'Mixing Fraction';
+          lblParam4.Caption := 'Maximum Level';
+          lblParam5.Caption := 'Diameter';
+          lblParam6.Caption := 'Minimum Volume';
     end;
 
     PIPES: begin
@@ -173,8 +177,8 @@ begin
     VALVES: begin
           lblParam1.Caption := 'Diameter';
           lblParam2.Caption := 'Setting';
-          lblParam3.Caption := 'Emitter Coeff.';
-          lblParam4.Caption := 'Loss Coeff.';
+          lblParam3.Caption := 'Loss Coeff.';
+          lblParam4.Caption := 'NA';
           lblParam5.Caption := 'NA';
           lblParam6.Caption := 'NA';
     end;
@@ -183,13 +187,165 @@ end;
 
 
 procedure TParamTuningForm.cmbObjectChange(Sender: TObject);
-var i: Integer;
+var objType, objIndex: Integer; objIdTxt: String;
 begin
-      //Load the properties for the select object
+    //Load the properties for the select object
+    objIndex := cmbObject.ItemIndex;
+    if (objIndex < 0) then
+      Exit;
 
-      //Fill these properties to this parameter tuning view
+    objType := cmbParmType.ItemIndex;
+    if (objType = 6) then   //All types
+    begin
+         objIdTxt :=  cmbObject.Items[objIndex];
+         if (not ObjNameIdMap.TryGetValue(objIdTxt, objIndex)) then
+              Exit;
 
+         if (objIdTxt.StartsWith('junc', true)) then
+            objType :=  JUNCS;
+         if (objIdTxt.StartsWith('resvr', true)) then
+            objType :=  RESERVS;
+         if (objIdTxt.StartsWith('tank', true)) then
+            objType :=  TANKS;
+         if (objIdTxt.StartsWith('pipe', true)) then
+            objType :=  PIPES;
+         if (objIdTxt.StartsWith('pump', true)) then
+            objType :=  PUMPS;
+         if (objIdTxt.StartsWith('valve', true)) then
+            objType :=  VALVES;
+    end;
 
+    //Get the properties
+    case objType of
+    JUNCS:  begin
+          lblParam1.Caption := 'Elevation';
+          lblParam2.Caption := 'Base Demand';
+          lblParam3.Caption := 'Emitter Coeff.';
+          lblParam4.Caption := 'Initial Quality';
+          lblParam5.Caption := 'Source Quality';
+          lblParam6.Caption := 'NA';
+          edtVal1.Text := Node(JUNCS,objIndex).Data[JUNC_ELEV_INDEX];
+          edtVal2.Text := Node(JUNCS,objIndex).Data[JUNC_DEMAND_INDEX];
+          edtVal3.Text := Node(JUNCS,objIndex).Data[JUNC_EMITTER_INDEX];
+          edtVal4.Text := Node(JUNCS,objIndex).Data[JUNC_INITQUAL_INDEX];
+          edtVal5.Text := Node(JUNCS,objIndex).Data[JUNC_SRCQUAL_INDEX];
+          edtVal6.Text := '0';
+
+          edtVal1Change(edtVal1);
+          edtVal2Change(edtVal2);
+          edtVal3Change(edtVal3);
+          edtVal4Change(edtVal4);
+          edtVal5Change(edtVal5);
+    end;
+
+    RESERVS:  begin
+          lblParam1.Caption := 'Total Head';
+          lblParam2.Caption := 'Initial Quality';
+          lblParam3.Caption := 'Source Quality';
+          lblParam4.Caption := 'NA';
+          lblParam5.Caption := 'NA';
+          lblParam6.Caption := 'NA';
+
+          edtVal1.Text := Node(RESERVS,objIndex).Data[RES_HEAD_INDEX];
+          edtVal2.Text := Node(RESERVS,objIndex).Data[RES_INITQUAL_INDEX];
+          edtVal3.Text := Node(RESERVS,objIndex).Data[RES_SRCQUAL_INDEX];
+          edtVal4.Text := '0';
+          edtVal5.Text := '0';
+          edtVal6.Text := '0';
+
+          edtVal1Change(edtVal1);
+          edtVal2Change(edtVal2);
+          edtVal3Change(edtVal3);
+    end;
+
+    TANKS:  begin
+          lblParam1.Caption := 'Elevation';
+          lblParam2.Caption := 'Initial Level';
+          lblParam3.Caption := 'Minimum Level';
+          lblParam4.Caption := 'Diameter';
+          lblParam5.Caption := 'Minimum Volume';
+          lblParam6.Caption := 'Mixing Fraction';
+
+          edtVal1.Text := Node(TANKS,objIndex).Data[TANK_ELEV_INDEX];
+          edtVal2.Text := Node(TANKS,objIndex).Data[TANK_INITLVL_INDEX];
+          edtVal3.Text := Node(TANKS,objIndex).Data[TANK_MINLVL_INDEX];
+          edtVal4.Text := Node(TANKS,objIndex).Data[TANK_MAXLVL_INDEX];
+          edtVal5.Text := Node(TANKS,objIndex).Data[TANK_DIAM_INDEX];
+          edtVal6.Text := Node(TANKS,objIndex).Data[TANK_MINVOL_INDEX];
+
+          edtVal1Change(edtVal1);
+          edtVal2Change(edtVal2);
+          edtVal3Change(edtVal3);
+          edtVal4Change(edtVal4);
+          edtVal5Change(edtVal5);
+          edtVal5Change(edtVal6);
+    end;
+
+    PIPES: begin
+          lblParam1.Caption := 'Length';
+          lblParam2.Caption := 'Diameter';
+          lblParam3.Caption := 'Roughness';
+          lblParam4.Caption := 'Loss Coeff.';
+          lblParam5.Caption := 'Bulk Coeff.';
+          lblParam6.Caption := 'Wall Coeff.';
+
+          edtVal1.Text := Link(PIPES,objIndex).Data[2];
+          edtVal2.Text := Link(PIPES,objIndex).Data[3];
+          edtVal3.Text := Link(PIPES,objIndex).Data[4];
+          edtVal4.Text := Link(PIPES,objIndex).Data[5];
+          edtVal5.Text := Link(PIPES,objIndex).Data[7];
+          edtVal6.Text := Link(PIPES,objIndex).Data[8];
+
+          edtVal1Change(edtVal1);
+          edtVal2Change(edtVal2);
+          edtVal3Change(edtVal3);
+          edtVal4Change(edtVal4);
+          edtVal5Change(edtVal5);
+          edtVal5Change(edtVal6);
+    end;
+
+    PUMPS: begin
+          lblParam1.Caption := 'Power';
+          lblParam2.Caption := 'Speed';
+          lblParam3.Caption := 'Energy Price';
+          lblParam4.Caption := 'NA';
+          lblParam5.Caption := 'NA';
+          lblParam6.Caption := 'NA';
+
+          edtVal1.Text := Link(PUMPS,objIndex).Data[3];
+          edtVal2.Text := Link(PUMPS,objIndex).Data[4];
+          edtVal3.Text := Link(PUMPS,objIndex).Data[8];
+          edtVal4.Text := '0';
+          edtVal5.Text := '0';
+          edtVal6.Text := '0';
+
+          edtVal1Change(edtVal1);
+          edtVal2Change(edtVal2);
+          edtVal3Change(edtVal3);
+    end;
+
+    VALVES: begin
+          lblParam1.Caption := 'Diameter';
+          lblParam2.Caption := 'Setting';
+          lblParam3.Caption := 'Loss Coeff.';
+          lblParam4.Caption := 'NA';
+          lblParam5.Caption := 'NA';
+          lblParam6.Caption := 'NA';
+
+          edtVal1.Text := Link(VALVES,objIndex).Data[2];
+          edtVal2.Text := Link(VALVES,objIndex).Data[4];
+          edtVal3.Text := Link(VALVES,objIndex).Data[5];
+          edtVal4.Text := '0';
+          edtVal5.Text := '0';
+          edtVal6.Text := '0';
+
+          edtVal1Change(edtVal1);
+          edtVal2Change(edtVal2);
+          edtVal3Change(edtVal3);
+    end;
+  end;
+
+    //Fill these properties to this parameter tuning view
 end;
 
 procedure TParamTuningForm.cmbParmTypeChange(Sender: TObject);
@@ -212,6 +368,7 @@ begin
     end;
 
     cmbObject.ItemIndex := 0;
+    cmbObjectChange(cmbObject)
 end;
 
 procedure TParamTuningForm.edtVal1Change(Sender: TObject);
@@ -236,39 +393,115 @@ begin
 end;
 
 procedure TParamTuningForm.edtVal2Change(Sender: TObject);
-var inputVal: Integer; s: String;
+var inputVal, bOk: Integer; stepTxt, valTxt: String; step: Real;
 begin
+      valTxt :=  edtVal2.Text;
+      stepTxt := edtStep2.Text;
 
+      if (valTxt = '') or (stepTxt = '') then
+        Exit;
+
+      Val(valTxt, inputVal, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      Val(stepTxt, step, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      if (inputVal >= 0) and (inputVal <= 1000) then
+        scrlbVal2.Position :=  ROUND(inputVal/step);
 end;
 
 procedure TParamTuningForm.edtVal3Change(Sender: TObject);
-var inputVal: Integer; s: String;
+var inputVal, bOk: Integer; stepTxt, valTxt: String; step: Real;
 begin
+      valTxt :=  edtVal3.Text;
+      stepTxt := edtStep3.Text;
 
+      if (valTxt = '') or (stepTxt = '') then
+        Exit;
+
+      Val(valTxt, inputVal, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      Val(stepTxt, step, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      if (inputVal >= 0) and (inputVal <= 1000) then
+        scrlbVal3.Position :=  ROUND(inputVal/step);
 end;
 
 procedure TParamTuningForm.edtVal4Change(Sender: TObject);
-var inputVal: Integer; s: String;
+var inputVal, bOk: Integer; stepTxt, valTxt: String; step: Real;
 begin
+      valTxt :=  edtVal4.Text;
+      stepTxt := edtStep4.Text;
 
+      if (valTxt = '') or (stepTxt = '') then
+        Exit;
+
+      Val(valTxt, inputVal, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      Val(stepTxt, step, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      if (inputVal >= 0) and (inputVal <= 1000) then
+        scrlbVal4.Position :=  ROUND(inputVal/step);
 end;
 
 procedure TParamTuningForm.edtVal5Change(Sender: TObject);
-var inputVal: Integer; s: String;
+var inputVal, bOk: Integer; stepTxt, valTxt: String; step: Real;
 begin
+      valTxt :=  edtVal5.Text;
+      stepTxt := edtStep5.Text;
 
+      if (valTxt = '') or (stepTxt = '') then
+        Exit;
+
+      Val(valTxt, inputVal, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      Val(stepTxt, step, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      if (inputVal >= 0) and (inputVal <= 1000) then
+        scrlbVal5.Position :=  ROUND(inputVal/step);
 end;
 
 procedure TParamTuningForm.edtVal6Change(Sender: TObject);
-var inputVal: Integer; s: String;
+var inputVal, bOk: Integer; stepTxt, valTxt: String; step: Real;
 begin
+      valTxt :=  edtVal6.Text;
+      stepTxt := edtStep6.Text;
 
+      if (valTxt = '') or (stepTxt = '') then
+        Exit;
+
+      Val(valTxt, inputVal, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      Val(stepTxt, step, bOk);
+      if (bOk <> 0) then
+        Exit;
+
+      if (inputVal >= 0) and (inputVal <= 1000) then
+        scrlbVal6.Position :=  ROUND(inputVal/step);
 end;
 
 procedure TParamTuningForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var i: Integer;
 begin
-
+      ObjNameIdMap.Clear;
+      ObjNameIdMap.Free;
 end;
 
 
@@ -281,6 +514,7 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
         edtVal1.Text := FloatToStr(inputVal*step);
 
         //Save the updated property
+
 
         //Re-run the simulation
   end;
