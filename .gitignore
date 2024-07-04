@@ -51,6 +51,9 @@
 *.hpp
 *Resource.rc
 
+# .Res file
+Delphi_GUI/epanet2w/Epanet2w.res
+
 # Delphi local files (user-specific info)
 *.local
 *.identcache
