@@ -350,7 +350,9 @@ begin
     end;
   end;
 
-    //Fill these properties to this parameter tuning view
+    //Update the browser and map
+    CurrentList := objType;
+    BrowserForm.UpdateBrowser(CurrentList, objIndex);
 end;
 
 procedure TParamTuningForm.cmbParmTypeChange(Sender: TObject);
