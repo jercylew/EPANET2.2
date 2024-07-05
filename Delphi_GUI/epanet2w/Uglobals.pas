@@ -802,6 +802,7 @@ var
   DefProp       : array [JUNCS..OPTS] of TDefProp; //Default properties
   NextID        : array [JUNCS..CNTRLS] of Integer; //Default ID labels
   IDPrefix      : array [JUNCS..CNTRLS] of String;  //ID label prefix
+  TagGroups     : array [JUNCS..VALVES] of TStringList;  //Tags for each object type
   IDIncrement   : Integer;              //Increment added to ID prefix
   EditorObject  : Integer;              //Type of object being edited
   EditorIndex   : Integer;              //Index of object being edited

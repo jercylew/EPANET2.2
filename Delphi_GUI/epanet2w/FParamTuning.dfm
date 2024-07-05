@@ -4,8 +4,8 @@ object ParamTuningForm: TParamTuningForm
   Hint = 'Parameters tunning for nodes and links'
   BorderStyle = bsDialog
   Caption = 'Parameters Tuning'
-  ClientHeight = 408
-  ClientWidth = 645
+  ClientHeight = 530
+  ClientWidth = 630
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,63 +19,13 @@ object ParamTuningForm: TParamTuningForm
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 40
-    Top = 59
-    Width = 77
-    Height = 13
-    Caption = 'Parameter Type'
-  end
-  object Label2: TLabel
-    Left = 384
-    Top = 59
-    Width = 32
-    Height = 13
-    Caption = 'Object'
-  end
-  object GroupBox1: TGroupBox
-    Left = 24
-    Top = 24
-    Width = 577
-    Height = 89
-    Caption = 'Choose an object'
-    TabOrder = 2
-  end
-  object cmbParmType: TComboBox
-    Left = 131
-    Top = 56
-    Width = 145
-    Height = 22
-    Style = csOwnerDrawFixed
-    ItemIndex = 6
-    TabOrder = 0
-    Text = 'All'
-    OnChange = cmbParmTypeChange
-    Items.Strings = (
-      'Junction'
-      'Reservoir'
-      'Tank'
-      'Pipe'
-      'Pump'
-      'Valve'
-      'All')
-  end
-  object cmbObject: TComboBox
-    Left = 440
-    Top = 56
-    Width = 145
-    Height = 22
-    Style = csOwnerDrawFixed
-    TabOrder = 1
-    OnChange = cmbObjectChange
-  end
   object GroupBox2: TGroupBox
     Left = 24
-    Top = 143
+    Top = 255
     Width = 577
     Height = 257
     Caption = 'Parameters Tunning'
-    TabOrder = 3
+    TabOrder = 0
     object lblParam1: TLabel
       Left = 16
       Top = 36
@@ -323,27 +273,116 @@ object ParamTuningForm: TParamTuningForm
       OnChange = edtVal6Change
     end
   end
-  object GridPanel1: TGridPanel
-    Left = 632
-    Top = 408
-    Width = 185
-    Height = 41
-    Caption = 'GridPanel1'
-    ColumnCollection = <
-      item
-        Value = 50.000000000000000000
+  object TabObjectGroup: TPageControl
+    Left = 24
+    Top = 16
+    Width = 577
+    Height = 233
+    ActivePage = TabSheet1
+    TabOrder = 1
+    object TabSheet1: TTabSheet
+      Caption = 'Choose an Object'
+      object Label1: TLabel
+        Left = 12
+        Top = 106
+        Width = 77
+        Height = 13
+        Caption = 'Parameter Type'
       end
-      item
-        Value = 50.000000000000000000
-      end>
-    ControlCollection = <>
-    RowCollection = <
-      item
-        Value = 50.000000000000000000
+      object Label2: TLabel
+        Left = 354
+        Top = 106
+        Width = 32
+        Height = 13
+        Caption = 'Object'
       end
-      item
-        Value = 50.000000000000000000
-      end>
-    TabOrder = 4
+      object cmbObject: TComboBox
+        Left = 392
+        Top = 103
+        Width = 145
+        Height = 22
+        Style = csOwnerDrawFixed
+        TabOrder = 0
+        OnChange = cmbObjectChange
+      end
+      object cmbParmType: TComboBox
+        Left = 95
+        Top = 103
+        Width = 145
+        Height = 22
+        Style = csOwnerDrawFixed
+        ItemIndex = 0
+        TabOrder = 1
+        Text = 'Junction'
+        OnChange = cmbParmTypeChange
+        Items.Strings = (
+          'Junction'
+          'Reservoir'
+          'Tank'
+          'Pipe'
+          'Pump'
+          'Valve'
+          'All')
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Choose an Group'
+      ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 28
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object Label3: TLabel
+        Left = 16
+        Top = 10
+        Width = 24
+        Height = 13
+        Caption = 'Type'
+      end
+      object Label5: TLabel
+        Left = 320
+        Top = 10
+        Width = 50
+        Height = 13
+        Caption = 'Group Tag'
+      end
+      object cmbGroup: TComboBox
+        Left = 376
+        Top = 7
+        Width = 145
+        Height = 21
+        TabOrder = 0
+        OnChange = cmbGroupChange
+      end
+      object cmbGroupType: TComboBox
+        Left = 46
+        Top = 7
+        Width = 145
+        Height = 21
+        ItemIndex = 0
+        TabOrder = 1
+        Text = 'Junction'
+        OnChange = cmbGroupTypeChange
+        Items.Strings = (
+          'Junction'
+          'Reservoir'
+          'Tank'
+          'Pipe'
+          'Pump'
+          'Valve')
+      end
+      object listTagObjects: TVirtualListBox
+        Left = 136
+        Top = 48
+        Width = 263
+        Height = 113
+        Count = 0
+        HorizScroll = False
+        ItemHeight = 16
+        ItemIndex = -1
+        OnGetItem = ItemListBoxGetItem
+        TabOrder = 2
+      end
+    end
   end
 end

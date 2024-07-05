@@ -430,6 +430,14 @@ begin
   CurrentItem[CNTRLS] := 0;
   CurrentItem[OPTS] := 0;
 
+// Tag groups
+  for i := JUNCS to VALVES do begin
+       TagGroups[i] := TStringList.Create;
+       TagGroups[i].Sorted := False;
+       TagGroups[i].CaseSensitive := False;
+  end;
+
+
 // Disable printing options if there are no printers
   thePrinter.SetShowProgress(True);
   if Printer.Printers.Count = 0 then

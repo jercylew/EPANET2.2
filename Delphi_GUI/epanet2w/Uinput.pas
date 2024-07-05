@@ -198,7 +198,7 @@ implementation
 
 uses
  Dcontrol, Dcurve, Ddemand, Dpattern, Dsource, Fmain, Fmap,
- Fbrowser, Umap, Uoutput;
+ Fbrowser, Umap, Uoutput, Ufileio;
 
 var
   ErrMsg: String;
@@ -1206,7 +1206,11 @@ function  ValidateInput(I: Integer; var S: String; var E: String): Boolean;
 //----------------------------------------------------------------------
 // This is the OnValidate event handler assigned to the Property Editor.
 //----------------------------------------------------------------------
-begin
+
+var
+  j: Integer;
+  TagText: String;
+ begin
   E := '';
   case EditorObject of
     JUNCS:   Result := ValidJunc(I, S);
@@ -1219,7 +1223,31 @@ begin
     OPTS:    Result := ValidOption(I, S);
     else Result := False;
   end;
-  if Result = False then E := ErrMsg;
+  if Result = False then
+      E := ErrMsg
+  else
+  begin
+        if I = 4 then  //Must be the index of the tag in the list of editor form
+        begin
+          TagGroups[EditorObject].Clear;
+          for j := 0 to (Network.Lists[EditorObject].Count-1) do
+          begin
+                case EditorObject of
+                    JUNCS,
+                    RESERVS,
+                    TANKS:   TagText := Node(EditorObject, j).Data[TAG_INDEX];
+                    PIPES,
+                    PUMPS,
+                    VALVES:  TagText := Link(EditorObject, j).Data[TAG_INDEX];
+                    else  TagText := '';
+                end;
+
+                Ufileio.UpdateTagGroup(EditorObject, TagText);
+          end;
+        end;
+  end;
+
+
 end;
 
 
@@ -1252,7 +1280,7 @@ begin
     end;
     if (k in [JUNC_DEMAND_INDEX, JUNC_PATTERN_INDEX]) then
       UpdateDemandList(EditorIndex);
-    if (k = JUNC_EMITTER_INDEX) then MapForm.DrawObject(JUNCS,EditorIndex); 
+    if (k = JUNC_EMITTER_INDEX) then MapForm.DrawObject(JUNCS,EditorIndex);
   end;
 end;
 

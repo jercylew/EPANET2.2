@@ -36,6 +36,7 @@ type
   function  OpenProject(var Fname: String): TInputFileType;
   procedure RegisterCalibData;
   procedure SaveProject(const Fname: String);
+  procedure UpdateTagGroup(ObjType: Integer; TagText: String);
 
 implementation
 
@@ -380,6 +381,17 @@ begin
 end;
 
 
+procedure UpdateTagGroup(ObjType: Integer; TagText: String);
+var foundIndex: Integer;
+begin
+    if TagText = '' then
+        Exit;
+    foundIndex := TagGroups[ObjType].IndexOf(TagText);
+    if (foundIndex < 0) then
+      TagGroups[ObjType].Add(TagText);
+end;
+
+
 {*******************************************************************}
 {             Procedures for Opening a Project                      }
 {*******************************************************************}
@@ -404,7 +416,6 @@ var
   nList     : TStringList;
   sList     : TStringList;
   Qstep     : Single;
-
 begin
 // Create a FileStream object
   try
@@ -512,6 +523,8 @@ begin
           ReadList(Reader,junc.Demands);
           Network.Lists[JUNCS].AddObject(id,junc);
           nList.AddObject(id,junc);
+
+          UpdateTagGroup(JUNCS, junc.Data[TAG_INDEX]);
         end;
 
       //Read in reservoirs
@@ -526,6 +539,8 @@ begin
           ReadArray(Reader,node.Data);
           Network.Lists[RESERVS].AddObject(id,node);
           nList.AddObject(id,node);
+
+          UpdateTagGroup(RESERVS, node.Data[TAG_INDEX]);
         end;
 
       //Read in tanks
@@ -543,6 +558,8 @@ begin
           then node.Data[TANK_OVERFLOW_INDEX] := 'No';
           Network.Lists[TANKS].AddObject(id,node);
           nList.AddObject(id,node);
+
+          UpdateTagGroup(TANKS, node.Data[TAG_INDEX]);
         end;
 
       //Read in pipes, pumps, & valves
@@ -563,6 +580,8 @@ begin
             ReadVertices(Reader,link);
             ReadArray(Reader,link.Data);
             Network.Lists[j].AddObject(id,link);
+
+            UpdateTagGroup(j, link.Data[TAG_INDEX]);
           end;
         end;
 
