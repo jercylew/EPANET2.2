@@ -329,7 +329,7 @@ object ParamTuningForm: TParamTuningForm
       Caption = 'Choose an Group'
       ImageIndex = 1
       ExplicitLeft = 0
-      ExplicitTop = 28
+      ExplicitTop = 0
       ExplicitWidth = 0
       ExplicitHeight = 0
       object Label3: TLabel

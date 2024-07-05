@@ -65,6 +65,7 @@ type
     procedure scrlbVal5Change(Sender: TObject);
     procedure scrlbVal6Change(Sender: TObject);
     procedure SingleSrolbValApplyToSim(n: Integer);
+    procedure GroupSrolbValApplyToSim(n: Integer);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure PopulateObjectList(ObjType: Integer);
@@ -87,10 +88,12 @@ type
     procedure cmbGroupTypeChange(Sender: TObject);
     procedure ItemListBoxGetItem(Sender: TObject; Index: Integer;
       var Value: String; var aColor: TColor);
+    function  doValidProp(ObjType: Integer; I: Integer; var S: String): Boolean;
   private
     { Private declarations }
     ObjNameIdMap: TDictionary<string, Integer>;
-    ListGroupObjects: TStringList;
+    ListGroupObjects: TStringList; //Used to fill the list of objects in a specific group
+    ListGroupObjIds: TList<Integer>;
   public
     { Public declarations }
   end;
@@ -107,6 +110,7 @@ var i: Integer;
 begin
   ObjNameIdMap := TDictionary<string, Integer>.Create;
   ListGroupObjects := TStringList.Create;
+  ListGroupObjIds := TList<Integer>.Create;
   if (cmbParmType.ItemIndex = 6) then
     begin
       for i := JUNCS to VALVES do
@@ -228,6 +232,7 @@ procedure TParamTuningForm.cmbGroupChange(Sender: TObject);
 var tagSelText, tagObjectText: String; n, i, objType: Integer;
 begin
       ListGroupObjects.Clear;
+      ListGroupObjIds.Clear;
       ListTagObjects.Count := 0;
       if cmbGroup.ItemIndex < 0 then
           Exit;
@@ -254,7 +259,11 @@ begin
                     else  tagObjectText := '';
                 end;
               if tagObjectText = tagSelText then
-                 ListGroupObjects.Add(objTag[ObjType] + GetID(ObjType,i));
+              begin
+                    ListGroupObjects.Add(objTag[ObjType] + GetID(ObjType,i));
+                    ListGroupObjIds.Add(i);
+              end;
+
         end;
 
         ListTagObjects.Count := ListGroupObjects.Count;
@@ -609,6 +618,10 @@ var i: Integer;
 begin
       ObjNameIdMap.Clear;
       ObjNameIdMap.Free;
+      ListGroupObjects.Clear;
+      ListGroupObjects.Free;
+      ListGroupObjIds.Clear;
+      ListGroupObjIds.Free;
 end;
 
 
@@ -624,7 +637,7 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
         end
         else
         begin
-
+              GroupSrolbValApplyToSim(1);
         end;
   end;
 
@@ -632,6 +645,7 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
   var inputVal, objType, objIndex: Integer;
   objIdTxt, objValTxt: String;
   step: Real;
+  valdPropLocs: array[JUNCS..VALVES] of Integer;
   validSucceed: Boolean;
   begin
         objIndex := cmbObject.ItemIndex;
@@ -644,36 +658,72 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
               step := StrToFloat(edtStep1.Text);
               edtVal1.Text := FloatToStr(inputVal*step);
               objValTxt := edtVal1.Text;
+              valdPropLocs[0] := 5;
+              valdPropLocs[1] := 5;
+              valdPropLocs[2] := 5;
+              valdPropLocs[3] := 5;
+              valdPropLocs[4] := 6;
+              valdPropLocs[5] := 5;
         end;
         2: begin
               inputVal :=  scrlbVal2.Position;
               step := StrToFloat(edtStep2.Text);
               edtVal2.Text := FloatToStr(inputVal*step);
               objValTxt := edtVal2.Text;
+              valdPropLocs[0] := 6;
+              valdPropLocs[1] := 7;
+              valdPropLocs[2] := 6;
+              valdPropLocs[3] := 6;
+              valdPropLocs[4] := 7;
+              valdPropLocs[5] := 7;
         end;
         3: begin
               inputVal :=  scrlbVal3.Position;
               step := StrToFloat(edtStep3.Text);
               edtVal3.Text := FloatToStr(inputVal*step);
               objValTxt := edtVal3.Text;
+              valdPropLocs[0] := 9;
+              valdPropLocs[1] := 8;
+              valdPropLocs[2] := 7;
+              valdPropLocs[3] := 7;
+              valdPropLocs[4] := 11;
+              valdPropLocs[5] := 8;
         end;
         4: begin
               inputVal :=  scrlbVal4.Position;
               step := StrToFloat(edtStep4.Text);
               edtVal4.Text := FloatToStr(inputVal*step);
               objValTxt := edtVal4.Text;
+              valdPropLocs[0] := 10;
+              valdPropLocs[1] := -1;
+              valdPropLocs[2] := 8;
+              valdPropLocs[3] := 8;
+              valdPropLocs[4] := -1;
+              valdPropLocs[5] := -1;
         end;
         5: begin
               inputVal :=  scrlbVal5.Position;
               step := StrToFloat(edtStep5.Text);
               edtVal5.Text := FloatToStr(inputVal*step);
               objValTxt := edtVal5.Text;
+              valdPropLocs[0] := 11;
+              valdPropLocs[1] := -1;
+              valdPropLocs[2] := 9;
+              valdPropLocs[3] := 10;
+              valdPropLocs[4] := -1;
+              valdPropLocs[5] := -1;
         end;
         6: begin
               inputVal :=  scrlbVal6.Position;
               step := StrToFloat(edtStep6.Text);
               edtVal6.Text := FloatToStr(inputVal*step);
               objValTxt := edtVal6.Text;
+              valdPropLocs[0] := -1;
+              valdPropLocs[1] := -1;
+              valdPropLocs[2] := 10;
+              valdPropLocs[3] := 11;
+              valdPropLocs[4] := -1;
+              valdPropLocs[5] := -1;
         end;
         else begin
              exit;
@@ -709,35 +759,157 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
 
         EditorObject := objType;
         EditorIndex := objIndex;
-        case objType of
-          JUNCS:  begin
-                validSucceed := Uinput.ValidJunc(5, objValTxt);
-          end;
+        validSucceed := doValidProp(objType, valdPropLocs[objType], objValTxt);
 
-          RESERVS:  begin
-                validSucceed := Uinput.ValidReserv(5, objValTxt);
-          end;
+        //Re-run the simulation
+        if validSucceed then
+           runSimulationSilent;
+  end;
 
-          TANKS:  begin
-                validSucceed := Uinput.ValidTank(5, objValTxt);
-          end;
 
-          PIPES: begin
-                validSucceed := Uinput.ValidPipe(5, objValTxt);
-          end;
+  procedure TParamTuningForm.GroupSrolbValApplyToSim(n: Integer);
+  var objType, objIndex, scrolBarValue, j: Integer;
+  valdPropLocs: array[JUNCS..VALVES] of Integer;
+  objIdTxt, objValTxt: String;
+  step: Real;
+  validSucceed, bOk: Boolean;
+  begin
+        objType := cmbGroupType.ItemIndex;
+        if objType < 0 then
+          exit;
 
-          PUMPS: begin
-                validSucceed := Uinput.ValidPump(6, objValTxt);
-          end;
+        //Get scroll bar value
+        case n of
+        1: begin
+              scrolBarValue :=  scrlbVal1.Position;
+              step := StrToFloat(edtStep1.Text);
+              edtVal1.Text := FloatToStr(scrolBarValue*step);
+              objValTxt := edtVal1.Text;
+              valdPropLocs[0] := 5;
+              valdPropLocs[1] := 5;
+              valdPropLocs[2] := 5;
+              valdPropLocs[3] := 5;
+              valdPropLocs[4] := 6;
+              valdPropLocs[5] := 5;
+        end;
+        2: begin
+              scrolBarValue :=  scrlbVal2.Position;
+              step := StrToFloat(edtStep2.Text);
+              edtVal2.Text := FloatToStr(scrolBarValue*step);
+              objValTxt := edtVal2.Text;
+              valdPropLocs[0] := 6;
+              valdPropLocs[1] := 7;
+              valdPropLocs[2] := 6;
+              valdPropLocs[3] := 6;
+              valdPropLocs[4] := 7;
+              valdPropLocs[5] := 7;
+        end;
+        3: begin
+              scrolBarValue :=  scrlbVal3.Position;
+              step := StrToFloat(edtStep3.Text);
+              edtVal3.Text := FloatToStr(scrolBarValue*step);
+              objValTxt := edtVal3.Text;
+              valdPropLocs[0] := 9;
+              valdPropLocs[1] := 8;
+              valdPropLocs[2] := 7;
+              valdPropLocs[3] := 7;
+              valdPropLocs[4] := 11;
+              valdPropLocs[5] := 8;
+        end;
+        4: begin
+              scrolBarValue :=  scrlbVal4.Position;
+              step := StrToFloat(edtStep4.Text);
+              edtVal4.Text := FloatToStr(scrolBarValue*step);
+              objValTxt := edtVal4.Text;
+              valdPropLocs[0] := 10;
+              valdPropLocs[1] := -1;
+              valdPropLocs[2] := 8;
+              valdPropLocs[3] := 8;
+              valdPropLocs[4] := -1;
+              valdPropLocs[5] := -1;
+        end;
+        5: begin
+              scrolBarValue :=  scrlbVal5.Position;
+              step := StrToFloat(edtStep5.Text);
+              edtVal5.Text := FloatToStr(scrolBarValue*step);
+              objValTxt := edtVal5.Text;
+              valdPropLocs[0] := 11;
+              valdPropLocs[1] := -1;
+              valdPropLocs[2] := 9;
+              valdPropLocs[3] := 10;
+              valdPropLocs[4] := -1;
+              valdPropLocs[5] := -1;
+        end;
+        6: begin
+              scrolBarValue :=  scrlbVal6.Position;
+              step := StrToFloat(edtStep6.Text);
+              edtVal6.Text := FloatToStr(scrolBarValue*step);
+              objValTxt := edtVal6.Text;
+              valdPropLocs[0] := -1;
+              valdPropLocs[1] := -1;
+              valdPropLocs[2] := 10;
+              valdPropLocs[3] := 11;
+              valdPropLocs[4] := -1;
+              valdPropLocs[5] := -1;
+        end;
+        else begin
+             exit;
+        end;
+        end;
 
-          VALVES: begin
-                validSucceed := Uinput.ValidValve(5, objValTxt);
-          end;
+        //Save the updated property
+        validSucceed := True;
+        for j := 0 to (ListGroupObjIds.Count - 1) do
+        begin   // For each object in the group
+            objIndex := ListGroupObjIds.Items[j];
+            if objIndex < 0 then
+                continue;
+
+            if valdPropLocs[objType] < 0 then
+                continue;
+
+            EditorObject := objType;
+            EditorIndex := objIndex;
+
+            bOk := doValidProp(objType, valdPropLocs[objType], objValTxt);
+            if not bOk then
+              validSucceed := False;
+
         end;
 
         //Re-run the simulation
         if validSucceed then
            runSimulationSilent;
+  end;
+
+
+  function TParamTuningForm.doValidProp(ObjType: Integer; I: Integer; var S: string): Boolean;
+  begin
+      case objType of
+        JUNCS:  begin
+              Result := Uinput.ValidJunc(I, S);
+        end;
+
+        RESERVS:  begin
+              Result := Uinput.ValidReserv(I, S);
+        end;
+
+        TANKS:  begin
+              Result := Uinput.ValidTank(I, S);
+        end;
+
+        PIPES: begin
+              Result := Uinput.ValidPipe(I, S);
+        end;
+
+        PUMPS: begin
+              Result := Uinput.ValidPump(I, S);
+        end;
+
+        VALVES: begin
+              Result := Uinput.ValidValve(I, S);
+        end;
+    end;
   end;
 
 
@@ -954,7 +1126,7 @@ procedure TParamTuningForm.scrlbVal1Change(Sender: TObject);
         end
         else
         begin
-
+              GroupSrolbValApplyToSim(2);
         end;
   end;
 
@@ -970,7 +1142,7 @@ procedure TParamTuningForm.scrlbVal3Change(Sender: TObject);
         end
         else
         begin
-
+              GroupSrolbValApplyToSim(3);
         end;
   end;
 
@@ -986,7 +1158,7 @@ procedure TParamTuningForm.scrlbVal4Change(Sender: TObject);
         end
         else
         begin
-
+              GroupSrolbValApplyToSim(4);
         end;
   end;
 
@@ -1002,7 +1174,7 @@ procedure TParamTuningForm.scrlbVal5Change(Sender: TObject);
         end
         else
         begin
-
+              GroupSrolbValApplyToSim(5);
         end;
   end;
 
@@ -1018,7 +1190,7 @@ procedure TParamTuningForm.scrlbVal6Change(Sender: TObject);
         end
         else
         begin
-
+              GroupSrolbValApplyToSim(6);
         end;
   end;
 
